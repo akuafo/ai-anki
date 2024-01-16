@@ -1,7 +1,6 @@
 # main.py - A python script for generating sentences and audio from Anki flashcards using the OpenAI API
 
 import sqlite3
-import pandas as pd
 import datetime
 import subprocess
 import json

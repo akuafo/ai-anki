@@ -4,10 +4,10 @@ This project was developed for users of Anki flashcards who want to use AI to ge
 
 Pre-requisites:
 * Python.
-* The Anki client app installed locally on the computer where you will run the script.
+* Install these python packages:  openai and pydantic
+* The Anki client app needs to be installed on the computer where you will run the script.
+* Modify the variables at the top of the script main.py:  Anki sqlite database path, OpenAI credentials, etc.
 * Before you start, create a backup of Anki.
-* Modify the variables at the top of the script with your Anki sqlite database path, OpenAI credentials, etc.
-* Install dependencies of the script.
 
 Each time you want to run this script, you need to update the Anki app on your desktop.  This is necessary because Anki doesn't have an API for the Anki cloud, so we can only acces the data locally.
 
