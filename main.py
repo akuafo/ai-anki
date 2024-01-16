@@ -4,11 +4,11 @@ import sqlite3
 import datetime
 import subprocess
 import json
-from openai import OpenAI
-from pydantic import BaseModel
 import re
 import os
 import traceback
+from pydantic import BaseModel
+from openai import OpenAI
 
 ### SET THE FOLLOWING VARIABLES BEFORE RUNNING THE SCRIPT ###
 
