@@ -2,3 +2,4 @@ generated_files/
 backup/
 ai-anki/
 .DS_Store
+.gitignore
