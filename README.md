@@ -19,17 +19,27 @@ Run the script:
 `python main.py`
 
 The script will do the following actions:
+
 Make a backup copy of anki database and save in a subdirectory
+
 Query the database for the review cards that are due on the current day
+
 Request to the OpenAI chat completion API to generate sentence variations
+
 Request to the OpenAI text to speech API to generate mp3 files
+
 Write the sentences and mp3 file links to an HTML file
 
 Some technical notes:
+
 Anki does not provide a cloud-based API so installing the Anki client on the desktop is the only practical way to access an Anki deck.  There is a feature called Anki Connect which does include an API, but it's similarly restricted to only local connections from the desktop.  Moreover, it requires installing an extension.  So there didn't appear to offer any benefit of using Anki Connect over directly querying the sqlite database.
+
 This script supports two scenarios:  vocabulary in a single language, and vocabulary for language learning.  The difference is that language learning version returns two sentences in different languages, while the single language version returns two different sentences in the same language.  They use different OpenAI prompts which can be customized.
+
 Currently only review cards are supported.
+
 This script automatically creates a backup db file each time it's run.  The file is named with a date stamp for that day so it overwrites if you run the script multiple times per day, but persists the last file that is written that day.
+
 OpenAI responses are fairly consistent, but do not always follow prompt instructions.  Sometimes it will generate sentences with mistakes or incorrectly convert the sentence to speech.
 
 Ideas for roadmap (work in progress):
