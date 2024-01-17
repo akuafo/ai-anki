@@ -1,6 +1,10 @@
 # AI-Anki Sentence Generator
 
-This project was developed for users of Anki flashcards who want to use AI to generate sentences that assist with card memorization.  The script interacts with a locally installed Anki DB and OpenAI APIs to generate sentences and voice mp3 files and writes the output to an html file.  This was originally designed for my own learning deck for the Japanese language but should work with most Anki decks.
+This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.
+
+This is a backend script for tinkering with Anki from the command line.  It does not include a front-end user interface or Anki add-on.  The script interacts with a locally installed Anki DB and OpenAI APIs to generate sentences and voice mp3 files and writes the output to an html file.
+
+This was originally designed for my own learning deck for the Japanese language but should work with most Anki decks.
 
 Pre-requisites:
 * Python
