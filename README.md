@@ -1,8 +1,10 @@
 # AI-Anki Sentence Generator
 
-This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.
+This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.  
 
-This is a backend script for tinkering with Anki from the command line.  It does not include a front-end user interface or Anki add-on.  The script interacts with a locally installed Anki DB and OpenAI APIs to generate sentences and voice mp3 files and writes the output to an html file.
+The script queries a locally installed Anki DB and retrieves the review cards for that day.  It then uses OpenAI APIs to generate sentences and voice mp3 files.  The output is written to an html file.
+
+This is a backend script to be used from the command line.  It does not include a front-end user interface or Anki add-on.
 
 This was originally designed for my own learning deck for the Japanese language but should work with most Anki decks.
 
@@ -14,7 +16,6 @@ Setup:
 * Install Python packages:  
 `pip install -r requirements.txt`
 * Modify the variables at the top of the script main.py for the database path, OpenAI credentials, etc.
-Run the script:
 * Create a backup of Anki (the script will also make a backup before it runs)
 * Open the Anki desktop app
 * Click the button to synchronize, so it gets your latest updates from Anki
@@ -24,7 +25,7 @@ Run the script:
 
 The script will do the following actions:
 
-Make a backup copy of anki database and save in a subdirectory
+Make a backup copy of the Anki database and save in a subdirectory
 
 Query the database for the review cards that are due on the current day
 
@@ -36,7 +37,7 @@ Write the sentences and mp3 file links to an HTML file
 
 Some technical notes:
 
-Anki does not provide a cloud-based API so installing the Anki client on the desktop is the only practical way to access an Anki deck.  There is a feature called Anki Connect which does include an API, but it's similarly restricted to only local connections from the desktop.  Moreover, it requires installing an extension.  So there didn't appear to offer any benefit of using Anki Connect over directly querying the sqlite database.
+Anki does not provide a cloud-based API so installing the Anki client on the desktop seemed like the most flexible way to retrieve the daily cards.  Other options for interfacing with Anki include Anki Connect (local HTTP interface on the desktop) or building an Anki Add-on, both of which add complexity and also still require manual interaction with the desktop client.
 
 This script supports two scenarios:  vocabulary in a single language, and vocabulary for language learning.  The difference is that language learning version returns two sentences in different languages, while the single language version returns two different sentences in the same language.  They use different OpenAI prompts which can be customized.
 
