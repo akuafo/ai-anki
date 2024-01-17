@@ -8,22 +8,22 @@ This is a backend script to be used from the command line.  It does not include 
 
 This was originally designed for my own learning deck for the Japanese language but should work with most Anki decks.
 
-Pre-requisites:
+**Pre-requisites**
 * Python
 * The Anki client app needs to be installed on the computer where you will run the script (see below for more info)
 
-Setup:
+**Setup**
 * Install Python packages:  
 `pip install -r requirements.txt`
 * Modify the variables at the top of the script main.py for the database path, OpenAI credentials, etc.
-* Create a backup of Anki (the script will also make a backup before it runs)
+* Create a backup of Anki (the script will also make a database backup before it runs)
 * Open the Anki desktop app
 * Click the button to synchronize, so it gets your latest updates from Anki
 * Quit the Anki app, so the database doesn't lock
 * Run the script:  
 `python main.py`
 
-The script will do the following actions:
+**What the script does**
 
 Make a backup copy of the Anki database and save in a subdirectory
 
@@ -35,7 +35,7 @@ Request to the OpenAI text to speech API to generate mp3 files
 
 Write the sentences and mp3 file links to an HTML file
 
-Some technical notes:
+**Some technical notes**
 
 Anki does not provide a cloud-based API so installing the Anki client on the desktop seemed like the most flexible way to retrieve the daily cards.  Other options for interfacing with Anki include Anki Connect (local HTTP interface on the desktop) or building an Anki Add-on, both of which add complexity and also still require manual interaction with the desktop client.
 
@@ -45,9 +45,9 @@ Currently only review cards are supported.
 
 This script automatically creates a backup db file each time it's run.  The file is named with a date stamp for that day so it overwrites if you run the script multiple times per day, but persists the last file that is written that day.
 
-OpenAI responses are fairly consistent, but do not always follow prompt instructions.  Sometimes it will generate sentences with mistakes or incorrectly convert the sentence to speech.
+OpenAI responses can be inconsistent and do not always follow prompt instructions.  Ongoing prompt tweaks are recommended.
 
-Ideas for roadmap (work in progress):
+**Ideas for roadmap (work in progress)**
 * Update the existing Anki cards with the generated sentences and audio files by inserting to the same note ID.  This is challenging due to Anki unstructured template-based card format and x1 divider scheme, which means it's unclear where to insert the sentences in any given Anki deck.  One idea is to use OpenAI to analyze the template and card of the deck and figure out where to insert.
 * Include new Anki cards as well as review cards ('due' for new cards is different time calculation than review cards).
 * Switch to another text-to-speech provider with a more natural Japanese voice, maybe PlayHT.
