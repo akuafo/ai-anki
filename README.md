@@ -1,12 +1,12 @@
 # AI-Anki Sentence Generator
 
-This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.  
+This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.
 
 The script queries a locally installed Anki DB and retrieves the review cards for that day.  It then uses OpenAI APIs to generate sentences and voice mp3 files.  The output is written to an html file.
 
-This is a backend script to be used from the command line.  It does not include a front-end user interface or Anki add-on.
+This is a backend script to be used from the command line.  It does not include a front-end user interface.
 
-This was originally designed for my own learning deck for the Japanese language but should work with most Anki decks.
+This script was originally designed for my own use as an end-of-day reinforcement for cards that I had trouble learning during the day.  It was designed for Japanese language learning but should work with most Anki decks.
 
 **Pre-requisites**
 * Python
