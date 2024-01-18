@@ -9,6 +9,7 @@ import os
 import traceback
 from pydantic import BaseModel
 from openai import OpenAI
+import azure.cognitiveservices.speech as speechsdk
 
 ### SET THE FOLLOWING VARIABLES BEFORE RUNNING THE SCRIPT ###
 
@@ -22,6 +23,9 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 gpt_version = 'gpt-4' # GPT version for openai
 tts_version = 'tts-1' # text to speech version for openai
 tts_voice = 'alloy'  # voice for text to speech for openai
+
+# Enter Microsoft Azure key (requires setting up an Azure resource with the Speech service, free tier is generous)
+MICROSOFT_TTS_KEY1 = os.environ.get('MICROSOFT_TTS_KEY1')
 
 # Set the location for where your Anki database is stored.  The default below is the Anki file path on Mac.  To find it on your system, search for an Anki file named 'collection.anki2'.
 anki_db_path = os.path.join(os.path.expanduser("~"), "Library/Application Support/Anki2/User 1/collection.anki2")
@@ -227,7 +231,7 @@ def generate_sentence(item):
         print("OpenAI chat completion response")
 
         # Call the next function for the text to speech API
-        text_to_speech(parsed_response)
+        text_to_speech_ms(parsed_response)
 
     except Exception as e:
         print("\nError occurred with OpenAI chat completion API...\n")
@@ -236,7 +240,7 @@ def generate_sentence(item):
         print("\nExiting the script.\n")
         exit()
 
-# Function to generate the audio as mp3 files using the OpenAI text to speech API
+# Text to Speech using OpenAI (disabled because it's not as good as Microsoft)
 def text_to_speech(sentences):
     global sentences_html
 
@@ -276,6 +280,63 @@ def text_to_speech(sentences):
         sentences_html += "<td>" + sentences.sentence1 + "</td>"
         sentences_html += "<td>" + sentences.sentence2 + "</td>"
     sentences_html += "<td><audio controls><source src=\"" + f"speech-{sentences.id}.mp3" + "\" type=\"audio/mpeg\">The html audio element is not supported.</audio></td>"
+    sentences_html += "</tr>"
+
+# Text to Speech using Microsoft Azure
+def text_to_speech_ms(sentences):
+    global sentences_html
+
+    print(sentences.sentence1 + " [pause] " + sentences.sentence2)
+
+    # in japanese, clean up furigana formatting and remove second sentence (for now)
+    if japanese_language:
+        text = re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1)
+    else:
+        text = sentences.sentence1 + " [pause] " + sentences.sentence2
+
+    try:
+
+        # Set the API key and API region
+        speech_key, service_region = MICROSOFT_TTS_KEY1, "eastasia"
+
+        # set the file path for the audio file
+        subfolder_path = os.path.join(generated_files_path, datetime.datetime.now().strftime("%Y-%m-%d"))
+        os.makedirs(subfolder_path, exist_ok=True)
+        file_path = os.path.join(subfolder_path, f"speech-{sentences.id}.wav")        
+
+        # create the configuration parameters for the speech sdk
+        speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region) # API key and region
+        speech_config.speech_synthesis_voice_name = "ja-JP-NanamiNeural" # Voice language - to get the full list of voices run this line of code:  print([voice.name for voice in speech_synthesizer.get_voices_async().get().voices])
+        audio_config = speechsdk.audio.AudioOutputConfig(filename=file_path) # save as file
+
+        # Generate the speech
+        speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+        speech_synthesizer.speak_text_async(text).get()
+
+        print(f"Saved file: {file_path}\n")
+
+        # future - slow down speed of audio https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-speech-synthesis?pivots=programming-language-python&tabs=browserjs%2Cterminal#get-a-result-as-an-in-memory-stream
+
+    except Exception as e:
+        print(f"\nAn error occurred with the text to speech api: {e}")
+        # print(f"\nAPI response: {response}\n") if 'response' in locals() else None
+        traceback.print_exc()
+        print("\nExiting the script.\n")
+        exit()
+
+    # Build the HTML table row for the sentence
+    sentences_html += "<tr>"
+    # if japanese, use furigana and 'click to reveal' the sentence.  for all others, build regular html with just sentences.
+    if japanese_language:
+        sentences_html += "<td>" + sentences.sentence1
+        # uncomment the following line if you want to display sentences with 1. Kanji only, 2. Anki furigana separator []
+        # sentences_html += "<br>kanji only:  " + re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1) + "<br>anki format:" + re.sub(r'<rt>(.*?)</rt>', r'[\1]', sentences.sentence1)
+        sentences_html += "</td>"
+        sentences_html += "<td class=\"clickable hidden-content\">" + sentences.sentence2 + "</td>" # 'click to reveal' for language learning
+    else:
+        sentences_html += "<td>" + sentences.sentence1 + "</td>"
+        sentences_html += "<td>" + sentences.sentence2 + "</td>"
+    sentences_html += "<td><audio controls><source src=\"" + f"speech-{sentences.id}.wav" + "\" type=\"audio/mpeg\">The html audio element is not supported.</audio></td>"
     sentences_html += "</tr>"
 
 # call the first function
