@@ -13,8 +13,8 @@ from openai import OpenAI
 ### SET THE FOLLOWING VARIABLES BEFORE RUNNING THE SCRIPT ###
 
 # Indicate if the Anki cards for Japanese Language (True) or not (False) to customize the openai prompt and text formatting
-japanese_language = False # any anki deck
-# japanese_language = True # japanese language decks
+# japanese_language = False # any anki deck
+japanese_language = True # japanese language decks
 
 # Enter your OpenAI API key (set as an environment variable in the console so it's not hardcoded)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
@@ -27,12 +27,12 @@ tts_voice = 'alloy'  # voice for text to speech for openai
 anki_db_path = os.path.join(os.path.expanduser("~"), "Library/Application Support/Anki2/User 1/collection.anki2")
 
 # Set the location to store the output for the html page and audio files.   Default path is the current working directory of the script.
-generated_files_path = os.path.join(os.getcwd(), "generated_files") # Use the current working directory of this script
-# generated_files_path = os.path.join(os.path.expanduser("~"), "Library/Mobile Documents/com~apple~CloudDocs/AI-audiofiles/generated_files") # Use a hard-coded path in iCloud
+# generated_files_path = os.path.join(os.getcwd(), "generated_files") # Use the current working directory of this script
+generated_files_path = os.path.join(os.path.expanduser("~"), "Library/Mobile Documents/com~apple~CloudDocs/AI-audiofiles/generated_files") # Use a hard-coded path in iCloud
 
 # Filter by deck ID
-deck_ids = []  # Use an empty set [] to retrieve all decks
-# deck_ids = [1656891776298, 1656891776302, 1656891776303]  # Use a list of deck IDs to filter by (in Anki this is stored in the 'did' field of the cards table)  deck_ids = [1705383475022]
+# deck_ids = []  # Use an empty set [] to retrieve all decks
+deck_ids = [1656891776298, 1656891776302, 1656891776303]  # Use a list of deck IDs to filter by (in Anki this is stored in the 'did' field of the cards table)  deck_ids = [1705383475022]
 
 ############
 

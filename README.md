@@ -47,6 +47,15 @@ This script automatically creates a backup db file each time it's run.  The file
 
 OpenAI responses can be inconsistent and do not always follow prompt instructions.  Ongoing prompt tweaks are recommended.
 
+**In progress currently**
+
+Replacement of Japanese voice with more natural sounding voice.
+Currently testing Microsoft's text to speech service:
+* SDK docs:  https://learn.microsoft.com/en-us/azure/ai-services/speech-service/index-text-to-speech
+* Created resource group with Speech service.
+Next step:
+* Store keys locally, then try Python sample:  https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quickstart/python/text-to-speech
+
 **Ideas for roadmap (work in progress)**
 * Update the existing Anki cards with the generated sentences and audio files by inserting to the same note ID.  This is challenging due to Anki unstructured template-based card format and x1 divider scheme, which means it's unclear where to insert the sentences in any given Anki deck.  One idea is to use OpenAI to analyze the template and card of the deck and figure out where to insert.
 * Include new Anki cards as well as review cards ('due' for new cards is different time calculation than review cards).
