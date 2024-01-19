@@ -2,7 +2,7 @@
 
 This project is intended for users of Anki who want to generate sentences with OpenAI to reinforce their daily card reviews.
 
-The script queries a locally installed Anki DB and retrieves the review cards for that day.  It then uses OpenAI APIs to generate sentences and voice mp3 files.  The output is written to an html file.
+The script queries a locally installed Anki DB and retrieves the review cards for that day.  It then uses OpenAI APIs to generate sentences and Microsoft Azure to generate voice audio files.  The output is written to an html file.
 
 This is a backend script to be used from the command line.  It does not include a front-end user interface.
 
@@ -31,9 +31,9 @@ Query the database for the review cards that are due on the current day
 
 Request to the OpenAI chat completion API to generate sentence variations
 
-Request to the OpenAI text to speech API to generate mp3 files
+Request to the Microsoft Azure SDK to generate audio files
 
-Write the sentences and mp3 file links to an HTML file
+Write the sentences and audio file links to an HTML file
 
 **Some technical notes**
 
@@ -49,17 +49,12 @@ OpenAI responses can be inconsistent and do not always follow prompt instruction
 
 **In progress currently**
 
-Replacement of Japanese voice with more natural sounding voice.
-Currently testing Microsoft's text to speech service:
+Replaced OpenAI Text to Speech API with Microsoft Azure's Speech API for a more natural sounding Japanese voice.
 * SDK docs:  https://learn.microsoft.com/en-us/azure/ai-services/speech-service/index-text-to-speech
-* Created resource group with Speech service.
-Next step:
-* Store keys locally, then try Python sample:  https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/quickstart/python/text-to-speech
 
 **Ideas for roadmap (work in progress)**
 * Update the existing Anki cards with the generated sentences and audio files by inserting to the same note ID.  This is challenging due to Anki unstructured template-based card format and x1 divider scheme, which means it's unclear where to insert the sentences in any given Anki deck.  One idea is to use OpenAI to analyze the template and card of the deck and figure out where to insert.
 * Include new Anki cards as well as review cards ('due' for new cards is different time calculation than review cards).
-* Switch to another text-to-speech provider with a more natural Japanese voice, maybe PlayHT.
 * Sort cards by the hardest cards first, as measured by 'ease'.
 * Implement Python audio packages pydub and ffmpeg in order to add pauses to the audio, slow it down or speed it up, and assemble multiple clips into longer podcast-style narrative audio.
 * Generate conversations and role play scenarios.  Mix and match vocabulary words from multiple cards.

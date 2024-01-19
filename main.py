@@ -20,9 +20,7 @@ japanese_language = True # japanese language decks
 # Enter your OpenAI API key (set as an environment variable in the console so it's not hardcoded)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 client = OpenAI(api_key=OPENAI_API_KEY)
-gpt_version = 'gpt-4' # GPT version for openai
-tts_version = 'tts-1' # text to speech version for openai
-tts_voice = 'alloy'  # voice for text to speech for openai
+gpt_version = 'gpt-4-1106-preview' # GPT version for openai
 
 # Enter Microsoft Azure key (requires setting up an Azure resource with the Speech service, free tier is generous)
 MICROSOFT_TTS_KEY1 = os.environ.get('MICROSOFT_TTS_KEY1')
@@ -47,18 +45,17 @@ sentences_html += """
             table {
                 width: 100%;
                 border-collapse: collapse;
-                table-layout: fixed;
+                table-layout: auto;
             }
             th {
                 padding: 10px;
-                width: 25%;
                 text-align: left;
             }
             td {
                 padding: 10px;
                 border: 1px solid black;
-                width: 25%;
                 text-align: left;
+                font-size: larger;
                 height: 50px;
                 cursor: pointer; /* for click to view */
             }
@@ -240,60 +237,20 @@ def generate_sentence(item):
         print("\nExiting the script.\n")
         exit()
 
-# Text to Speech using OpenAI (disabled because it's not as good as Microsoft)
-def text_to_speech(sentences):
-    global sentences_html
-
-    print(sentences.sentence1 + " [pause] " + sentences.sentence2)
-
-    try:
-        # Use the python SDK to call the OpenAI text to speech API, and strip html tags
-        response = client.audio.speech.create(
-            model=tts_version, 
-            voice=tts_voice, 
-            input=re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1) + " [pause] " + sentences.sentence2
-        )
-    except Exception as e:
-        print(f"\nAn error occurred with the text to speech api: {e}")
-        print(f"\nAPI response: {response}\n") if 'response' in locals() else None
-        traceback.print_exc()
-        print("\nExiting the script.\n")
-        exit()
-
-    # Save the generated speech as an mp3 file in the subfolder       
-    subfolder_path = os.path.join(generated_files_path, datetime.datetime.now().strftime("%Y-%m-%d"))
-    os.makedirs(subfolder_path, exist_ok=True)
-    file_path = os.path.join(subfolder_path, f"speech-{sentences.id}.mp3")
-    response.stream_to_file(file_path)
-    print(f"Saved file: {file_path}\n")
-
-    # Build the HTML table row for the sentence
-    sentences_html += "<tr>"
-    # if japanese, use furigana and 'click to reveal' the sentence.  for all others, build regular html with just sentences.
-    if japanese_language:
-        sentences_html += "<td>" + sentences.sentence1
-        # uncomment the following line if you want to display sentences with 1. Kanji only, 2. Anki furigana separator []
-        # sentences_html += "<br>kanji only:  " + re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1) + "<br>anki format:" + re.sub(r'<rt>(.*?)</rt>', r'[\1]', sentences.sentence1)
-        sentences_html += "</td>"
-        sentences_html += "<td class=\"clickable hidden-content\">" + sentences.sentence2 + "</td>" # 'click to reveal' for language learning
-    else:
-        sentences_html += "<td>" + sentences.sentence1 + "</td>"
-        sentences_html += "<td>" + sentences.sentence2 + "</td>"
-    sentences_html += "<td><audio controls><source src=\"" + f"speech-{sentences.id}.mp3" + "\" type=\"audio/mpeg\">The html audio element is not supported.</audio></td>"
-    sentences_html += "</tr>"
-
 # Text to Speech using Microsoft Azure
 def text_to_speech_ms(sentences):
     global sentences_html
 
     print(sentences.sentence1 + " [pause] " + sentences.sentence2)
 
+    # set the language voice - to get the full list of voices you can run this line of code:  print([voice.name for voice in speech_synthesizer.get_voices_async().get().voices])
     # in japanese, clean up furigana formatting and remove second sentence (for now)
     if japanese_language:
+        voice = "ja-JP-NanamiNeural"
         text = re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1)
     else:
+        voice = "en-US-EmmaNeural"
         text = sentences.sentence1 + " [pause] " + sentences.sentence2
-
     try:
 
         # Set the API key and API region
@@ -306,7 +263,7 @@ def text_to_speech_ms(sentences):
 
         # create the configuration parameters for the speech sdk
         speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region) # API key and region
-        speech_config.speech_synthesis_voice_name = "ja-JP-NanamiNeural" # Voice language - to get the full list of voices run this line of code:  print([voice.name for voice in speech_synthesizer.get_voices_async().get().voices])
+        speech_config.speech_synthesis_voice_name = voice 
         audio_config = speechsdk.audio.AudioOutputConfig(filename=file_path) # save as file
 
         # Generate the speech
