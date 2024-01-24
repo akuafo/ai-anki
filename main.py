@@ -20,7 +20,7 @@ japanese_language = True # japanese language decks
 # Enter your OpenAI API key (set as an environment variable in the console so it's not hardcoded)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 client = OpenAI(api_key=OPENAI_API_KEY)
-gpt_version = 'gpt-4-1106-preview' # GPT version for openai
+gpt_version = 'gpt-4-1106-preview'
 
 # Enter Microsoft Azure key (requires setting up an Azure resource with the Speech service, free tier is generous)
 MICROSOFT_TTS_KEY1 = os.environ.get('MICROSOFT_TTS_KEY1')
@@ -28,7 +28,7 @@ MICROSOFT_TTS_KEY1 = os.environ.get('MICROSOFT_TTS_KEY1')
 # Set the location for where your Anki database is stored.  The default below is the Anki file path on Mac.  To find it on your system, search for an Anki file named 'collection.anki2'.
 anki_db_path = os.path.join(os.path.expanduser("~"), "Library/Application Support/Anki2/User 1/collection.anki2")
 
-# Set the location to store the output for the html page and audio files.   Default path is the current working directory of the script.
+# Set the location to store the output for the html page and audio files.
 # generated_files_path = os.path.join(os.getcwd(), "generated_files") # Use the current working directory of this script
 generated_files_path = os.path.join(os.path.expanduser("~"), "Library/Mobile Documents/com~apple~CloudDocs/AI-audiofiles/generated_files") # Use a hard-coded path in iCloud
 
@@ -63,7 +63,9 @@ sentences_html += """
                 opacity: 0.05; 
                 cursor: pointer; /* for click to view */
             }
-
+            .small-text {
+                font-size: smaller;
+            }
         </style>
     </head>
     <body>
@@ -104,63 +106,76 @@ def get_anki_cards():
     print(f"Database backup written to:  {anki_db_path}/{destination_path}/backup_{datetime.datetime.now().strftime('%Y%m%d')}.anki2\n")
 
     # Connect to the Anki SQLite database
-    conn_anki = sqlite3.connect(anki_db_path)
-    conn_anki.execute("PRAGMA journal_mode=DELETE") # this means the journal is stored in a separate file and deleted at transaction end
+    try:
+        conn_anki = sqlite3.connect(anki_db_path)
+        conn_anki.execute("PRAGMA journal_mode=DELETE") # this means the journal is stored in a separate file and deleted at transaction end
 
-    # Print details of anki state for troubleshooting
-    print(f"The current system time is: {datetime.datetime.now()}")
-    current_unixepoch = int(conn_anki.execute('SELECT strftime(\'%s\', \'now\')').fetchone()[0])
-    print(f"The current anki database time is: {datetime.datetime.fromtimestamp(int(current_unixepoch))}")
+        # Print details of anki state for troubleshooting
+        print(f"The current system time is: {datetime.datetime.now()}")
+        current_unixepoch = int(conn_anki.execute('SELECT strftime(\'%s\', \'now\')').fetchone()[0])
+        print(f"The current anki database time is: {datetime.datetime.fromtimestamp(int(current_unixepoch))}")
 
-    # Start to build the table of sentences in the html file
-    sentences_html += "<h1>Generated Sentences</h1>"
-    sentences_html +=  f"<h2> {datetime.datetime.fromtimestamp(int(current_unixepoch))} </h2>"
-    sentences_html +=  "<table>"
-    if japanese_language:
-        sentences_html +=  "<tr><th>Japanese</th><th>English (click to display)</th><th>Audio</th></tr>"
-    else:
-        sentences_html +=  "<tr><th>Sentence 1</th><th>Sentence 2</th><th>Audio</th></tr>"
+        # Start to build the table of sentences in the html file
+        sentences_html += "<h1>Generated Sentences</h1>"
+        sentences_html +=  f"<h2> {datetime.datetime.fromtimestamp(int(current_unixepoch))} </h2>"
+        sentences_html +=  "<table>"
+        if japanese_language:
+            sentences_html +=  "<tr><th>Japanese</th><th>English (click to display)</th><th>Audio</th></tr>"
+        else:
+            sentences_html +=  "<tr><th>Sentence 1</th><th>Sentence 2</th><th>Audio</th></tr>"
 
-    # Build SQL query to retrieve due cards
-    one_day = 86400  # unix epoch time
-    crt = conn_anki.execute('select crt from col').fetchone()[0]  # get the creation time of the Anki collection
-    seconds_diff = current_unixepoch - crt  # calculate the number of seconds between the current time and the collection creation time
-    current_day = seconds_diff // one_day  # convert the number of seconds to days
-    print(f"The Anki collection was created on {datetime.datetime.fromtimestamp(int(crt))} with Anki crt of {crt}.  Therefore, today is {current_day} days after the creation date.")
+        # Build SQL query to retrieve due cards
+        one_day = 86400  # unix epoch time
+        crt = conn_anki.execute('select crt from col').fetchone()[0]  # get the creation time of the Anki collection
+        seconds_diff = current_unixepoch - crt  # calculate the number of seconds between the current time and the collection creation time
+        current_day = seconds_diff // one_day  # convert the number of seconds to days
+        print(f"The Anki collection was created on {datetime.datetime.fromtimestamp(int(crt))} with Anki crt of {crt}.  Therefore, today is {current_day} days after the creation date.")
 
-    # Build SQL clause to filter by deck ID
-    if deck_ids:
-        deck_ids_str = str(tuple(deck_ids)) if len(deck_ids) > 1 else f"({deck_ids[0]})"
-        filter_by_deck = f"c.did IN {deck_ids_str} AND "
-    else:
-        filter_by_deck = ""
+        # Build SQL clause to filter by deck ID
+        if deck_ids:
+            deck_ids_str = str(tuple(deck_ids)) if len(deck_ids) > 1 else f"({deck_ids[0]})"
+            filter_by_deck = f"c.did IN {deck_ids_str} AND "
+        else:
+            filter_by_deck = ""
 
-    # Construct the SQL query to retrieve today's review cards from Anki's SQLite database
-    # Note on new cards:  This query only includes review cards.  If you want to include new cards you can query with queue = 0 and omitting the time range value for new cards because anki uses the due column differently for new and review cards.
-    # Note on card difficulty:  You can include card difficulty by adding 'r.ease' and 'JOIN revlog r ON c.id = r.cid' to the query
-    query = f"""
-    SELECT c.id, n.flds
-    FROM cards c
-    JOIN notes n ON c.nid = n.id 
-    WHERE {filter_by_deck}due = '{current_day}'
-    """
+        # Construct the SQL query to retrieve today's review cards from Anki's SQLite database
+        # This query only includes review cards.  If you want to include new cards you can query with queue = 0 and omitting the time range value for new cards because anki uses the due column differently for new and review cards.
+        query = f"""
+        SELECT c.id, n.flds, r.lastIvl, r.ease, n.flags 
+        FROM cards c JOIN notes n ON c.nid = n.id 
+        JOIN (SELECT cid, MAX(id) as max_id FROM revlog GROUP BY cid) as x ON c.id = x.cid 
+        JOIN revlog r ON x.cid = r.cid AND x.max_id = r.id 
+        WHERE {filter_by_deck}due = '{current_day}'
+        """
+        # Query response will include the following columns:
+        # 0:  id - the id from cards
+        # 1:  flds - the card (string of fields separated by \x1f) from notes
+        # 2:  flags - flags from note
+        # 3:  ease - most recent ease value from revlogs
+        # 4:  lastIvl - most recent interval value from revlogs
+        
+        print(query);
+        print(f"\nNumber of rows in the query result: {len(conn_anki.execute(query).fetchall())}\n")
 
-    print(query);
-    print(f"\nNumber of rows in the query result: {len(conn_anki.execute(query).fetchall())}\n")
+        # if no rows are returned from the database, exit the script
+        if len(conn_anki.execute(query).fetchall()) == 0:
+            print("No rows were returned from the Anki database.  Either you have no review cards due today, or there is a problem with the query.  Query problems could include the wrong deck IDs, a problem with the system time, or an Anki configuration that's not supported by this script.\nExiting the script.\n")
+            exit()
 
-    # if no rows are returned from the database, exit the script
-    if len(conn_anki.execute(query).fetchall()) == 0:
-        print("No rows were returned from the Anki database.  Either you have no review cards due today, or there is a problem with the query.  Query problems could include the wrong deck IDs, a problem with the system time, or an Anki configuration that's not supported by this script.\nExiting the script.\n")
-        exit()
-
-    # iterate through the rows of the query result and call the next function to generate the sentence
-    row_number = 0
-    for row in conn_anki.execute(query):
-        row_number = row_number + 1
-        print(f"Row number: {row_number}")
-        print(f"{row}\n")
-        generate_sentence(row)
-        # break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
+        # iterate through the rows of the query result and call the next function to generate the sentence
+        row_number = 0
+        for row in conn_anki.execute(query):
+            row_number = row_number + 1
+            print(f"Row number: {row_number}")
+            print(f"{row}\n")
+            generate_sentence(row)
+            # break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if conn_anki:
+            conn_anki.close()
+            print("Database connection closed.")
 
     # close the html page and write to file 'generated_sentences.html'
     sentences_html += "</table></body></html>"
@@ -178,6 +193,12 @@ def get_anki_cards():
 # Function to generate the sentence using the OpenAI chat completion API
 def generate_sentence(item):
 
+    # The 'item' is a row from the Anki database as a tuple, for example:
+    # anki row: (1665999186835, 'ちっとも\x1fちっとも\x1f\x1fNot at all (negative sentence)\x1f\x1f\x1fSimilar to ぜんぜん')
+
+    # print(f"First two elements of the python object: {item[:2]}\n")
+    # print(f"All elements of the python object: {item}\n")
+
     # You can modify the prompt below according to your Anki flashcard use case.
     if japanese_language:
         prompt_messages = [
@@ -187,7 +208,7 @@ def generate_sentence(item):
             },
             {
                 "role": "user",
-                "content": json.dumps(item, ensure_ascii=False)
+                "content": json.dumps(item[:2], ensure_ascii=False)
             }
         ]
     else:
@@ -198,7 +219,7 @@ def generate_sentence(item):
             },
             {
                 "role": "user",
-                "content": json.dumps(item, ensure_ascii=False)
+                "content": json.dumps(item[:2], ensure_ascii=False)
             }
         ]
     # prompt_messages = [{"role": "system", "content": "you are an academic pirate."}, {"role": "user", "content": "what is the value of pi?"}]  # TEST A BAD OPENAI RESPONSE
@@ -213,19 +234,35 @@ def generate_sentence(item):
         chat_response = client.chat.completions.create(
             messages=messages_generate,
             model=gpt_version,
+            response_format= { "type":"json_object" }
         )
 
         # Convert the JSON response to a python dictionary
         response_dict = json.loads(chat_response.choices[0].message.content)
 
+        response_dict['interval'] = item[2]
+        response_dict['ease'] = item[3]
+        response_dict['flags'] = item[4]
+
         # Define a Pydantic model and validate the response data
         class SentenceResponse(BaseModel):
+            # AI generated sentences
             sentence1: str
             sentence2: str
+            # Anki note ID
             id: int
+            # Fields related to Anki card difficulty
+            interval: int
+            ease: int
+            flags: int
         parsed_response = SentenceResponse(**response_dict)
 
         print("OpenAI chat completion response")
+
+        print(f"parsed_response: {parsed_response}\n")
+
+        # pydantic parses the json from openai into a python object called parsed_response, for example:
+        # sentence1='これは<ruby>全<rt>ぜん</rt></ruby><ruby>然<rt>ぜん</rt></ruby>おいしくない。ちっとも<ruby>満足<rt>まんぞく</rt></ruby>できなかった。' sentence2='This is not delicious at all. I was not satisfied in the slightest.' id=1665999186835
 
         # Call the next function for the text to speech API
         text_to_speech_ms(parsed_response)
@@ -288,6 +325,7 @@ def text_to_speech_ms(sentences):
         sentences_html += "<td>" + sentences.sentence1
         # uncomment the following line if you want to display sentences with 1. Kanji only, 2. Anki furigana separator []
         # sentences_html += "<br>kanji only:  " + re.sub(r'<ruby>(.*?)<rt>(.*?)</rt></ruby>', r'\1', sentences.sentence1) + "<br>anki format:" + re.sub(r'<rt>(.*?)</rt>', r'[\1]', sentences.sentence1)
+        sentences_html += "<br><span class=\"small-text\">" + "Interval: " + str(sentences.interval) + " Ease: " + str(sentences.ease) + " Flags: " + str(sentences.flags) + "</span></td>"
         sentences_html += "</td>"
         sentences_html += "<td class=\"clickable hidden-content\">" + sentences.sentence2 + "</td>" # 'click to reveal' for language learning
     else:
