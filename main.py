@@ -141,7 +141,7 @@ def get_anki_cards():
         # Construct the SQL query to retrieve today's review cards from Anki's SQLite database
         # This query only includes review cards.  If you want to include new cards you can query with queue = 0 and omitting the time range value for new cards because anki uses the due column differently for new and review cards.
         query = f"""
-        SELECT c.id, n.flds, r.lastIvl, r.ease, n.flags 
+        SELECT c.id, n.flds, r.lastIvl, r.ease, c.flags 
         FROM cards c JOIN notes n ON c.nid = n.id 
         JOIN (SELECT cid, MAX(id) as max_id FROM revlog GROUP BY cid) as x ON c.id = x.cid 
         JOIN revlog r ON x.cid = r.cid AND x.max_id = r.id 
@@ -150,7 +150,7 @@ def get_anki_cards():
         # Query response will include the following columns:
         # 0:  id - the id from cards
         # 1:  flds - the card (string of fields separated by \x1f) from notes
-        # 2:  flags - flags from note
+        # 2:  flags - flags from cards
         # 3:  ease - most recent ease value from revlogs
         # 4:  lastIvl - most recent interval value from revlogs
         
@@ -169,7 +169,7 @@ def get_anki_cards():
             print(f"Row number: {row_number}")
             print(f"{row}\n")
             generate_sentence(row)
-            # break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
+            break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
