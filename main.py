@@ -169,7 +169,7 @@ def get_anki_cards():
             print(f"Row number: {row_number}")
             print(f"{row}\n")
             generate_sentence(row)
-            break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
+            # break  # UNCOMMENT TO TEST A SINGLE ROW RESULT FROM THE DATABASE
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
