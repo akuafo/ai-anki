@@ -142,10 +142,12 @@ def get_anki_cards():
         # This query only includes review cards.  If you want to include new cards you can query with queue = 0 and omitting the time range value for new cards because anki uses the due column differently for new and review cards.
         query = f"""
         SELECT c.id, n.flds, r.lastIvl, r.ease, c.flags 
-        FROM cards c JOIN notes n ON c.nid = n.id 
+        FROM cards c 
+        JOIN notes n ON c.nid = n.id 
         JOIN (SELECT cid, MAX(id) as max_id FROM revlog GROUP BY cid) as x ON c.id = x.cid 
         JOIN revlog r ON x.cid = r.cid AND x.max_id = r.id 
         WHERE {filter_by_deck}due = '{current_day}'
+        ORDER BY c.flags DESC, r.ease ASC;
         """
         # Query response will include the following columns:
         # 0:  id - the id from cards
@@ -153,7 +155,7 @@ def get_anki_cards():
         # 2:  flags - flags from cards
         # 3:  ease - most recent ease value from revlogs
         # 4:  lastIvl - most recent interval value from revlogs
-        
+
         print(query);
         print(f"\nNumber of rows in the query result: {len(conn_anki.execute(query).fetchall())}\n")
 
