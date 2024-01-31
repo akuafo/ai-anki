@@ -201,18 +201,41 @@ def generate_sentence(item):
     # print(f"First two elements of the python object: {item[:2]}\n")
     # print(f"All elements of the python object: {item}\n")
 
-    # You can modify the prompt below according to your Anki flashcard use case.
+    # You can modify the prompts below according to your Anki flashcard use case.
     if japanese_language:
         prompt_messages = [
             {
                 "role": "system",
-                "content": "You will be given an Anki note from a flashcard deck.   You will respond with JSON with three items of sentence1, sentence2, and id.  sentence1 is a string of Japanese text consisting of a generated sentence that will help give context to the person learning the flashcards (NOTE:  ALL KANJI IN THE JAPANESE MUST BE ENCLOSED WITH HTML RUBY TAGS WITH FURIGANA IN RT TAGS). sentence2 is a string of English text and consists of an English translation of sentence1.  id is the ID of the Anki note.  THE JSON MUST ALWAYS USE DOUBLE QUOTES.  Here is example JSON: {\"sentence1\": \"<ruby>老人<rt>ろうじん</rt></ruby><ruby>施設<rt>しせつ</rt></ruby>で<ruby>働<rt>はたら</rt></ruby>くことは、<ruby>多<rt>おお</rt></ruby>くの<ruby>人<rt>ひと</rt></ruby>にとって<ruby>非常<rt>ひじょう</rt></ruby>にやりがいのある<ruby>経験<rt>けいけん</rt></ruby>です。\", \"sentence2\": \"Working in an elderly care facility is a very rewarding experience for many people.\", \"id\": 1671244560415}"
+                "content": "You will be given an Anki note from a flashcard deck.   You will respond with JSON with two sentences: sentence1 and sentence2.  sentence1 is a generated sentence in Japanese that will help the person learn the flashcard.  KANJI MUST INCLUDE RUBY AND RT TAGS WITH FURIGANA, FOR EXAMPLE:  <ruby>老人<rt>ろうじん</rt></ruby>, BUT HIRAGANA AND KATAKANA SHOULD NEVER BE ENCLOSED IN RUBY TAGS.  sentence2 is a string of English text and consists of an English translation of sentence1.  THE JSON RESPONSE MUST ALWAYS USE DOUBLE QUOTES."
+            },
+            {
+                "role": "user",
+                "content": "(1440785141775, '届きます\x1f届[とど]きます/とどく\x1f[ 荷物[にもつ]が～]\x1f[parcels] be delivered\x1fI\x1f36\x1fI\x1f\x1f\x1fHint: ‘to do’<div><br></div><div>The package has arrived.</div>\x1f', 32, 2, 0)"
+            },
+            {
+                "role": "system",
+                "content": "<ruby>荷物<rt>にもつ</rt></ruby>が<ruby>届<rt>とど</rt></ruby>きました。 [pause] The package has arrived."
+            },
+            {
+                "role": "user",
+                "content": "(1622075780091, 'それまでに\x1fそれまでに宿題を終わらせます。\x1fI’ll finish my homework by that time.\x1f48\x1f\nそれまでに&nbsp;by that time', 98, 2, 7)"
+            },
+            {
+                "role": "system",
+                "content": "それまでに<ruby>宿題<rt>しゅくだい</rt></ruby>を<ruby>終<rt>お</rt></ruby>わらせます。"
             },
             {
                 "role": "user",
                 "content": json.dumps(item[:2], ensure_ascii=False)
             }
         ]
+        messages_generate = []
+        messages_generate.append(prompt_messages[0])
+        messages_generate.append(prompt_messages[1])
+        messages_generate.append(prompt_messages[2])
+        messages_generate.append(prompt_messages[3])
+        messages_generate.append(prompt_messages[4])
+        messages_generate.append(prompt_messages[5])
     else:
         prompt_messages =  [
             {
@@ -224,12 +247,11 @@ def generate_sentence(item):
                 "content": json.dumps(item[:2], ensure_ascii=False)
             }
         ]
-    # prompt_messages = [{"role": "system", "content": "you are an academic pirate."}, {"role": "user", "content": "what is the value of pi?"}]  # TEST A BAD OPENAI RESPONSE
+        messages_generate = []
+        messages_generate.append(prompt_messages[0])
+        messages_generate.append(prompt_messages[1])
 
-    # Build the openai message array
-    messages_generate = []
-    messages_generate.append(prompt_messages[0])
-    messages_generate.append(prompt_messages[1])
+    # print(f"messages_generate: {messages_generate}\n") # Print the entire prompt for troubleshooting
 
     try:
         # Call the OpenAI API with the python sdk
@@ -242,6 +264,7 @@ def generate_sentence(item):
         # Convert the JSON response to a python dictionary
         response_dict = json.loads(chat_response.choices[0].message.content)
 
+        response_dict['id'] = item[0]
         response_dict['interval'] = item[2]
         response_dict['ease'] = item[3]
         response_dict['flags'] = item[4]
