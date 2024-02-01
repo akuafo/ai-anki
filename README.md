@@ -57,7 +57,6 @@ Replaced OpenAI Text to Speech API with Microsoft Azure's Speech API for a more 
 **Ideas for roadmap (work in progress)**
 * Update the existing Anki cards with the generated sentences and audio files by inserting to the same note ID.  This is challenging due to Anki unstructured template-based card format and x1 divider scheme, which means it's unclear where to insert the sentences in any given Anki deck.  One idea is to use OpenAI to analyze the template and card of the deck and figure out where to insert.
 * Include new Anki cards as well as review cards ('due' for new cards is different time calculation than review cards).
-* Sort cards by the hardest cards first, as measured by 'ease'.
 * Generate conversations and role play scenarios.  Mix and match vocabulary words from multiple cards.
 * Create a self-evaluation feedback loop for GPT-4 to assess the quality of each sentence and audio file and redo if there are mistakes.
 * Add prompting so the user can set their level (intermediate, advanced, etc) and get appropriately complex sentences.
