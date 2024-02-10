@@ -213,7 +213,7 @@ def generate_sentence(item):
                 "content": "(1440785141775, '届きます\x1f届[とど]きます/とどく\x1f[ 荷物[にもつ]が～]\x1f[parcels] be delivered\x1fI\x1f36\x1fI\x1f\x1f\x1fHint: ‘to do’<div><br></div><div>The package has arrived.</div>\x1f', 32, 2, 0)"
             },
             {
-                "role": "system",
+                "role": "assistant",
                 "content": "<ruby>荷物<rt>にもつ</rt></ruby>が<ruby>届<rt>とど</rt></ruby>きました。 [pause] The package has arrived."
             },
             {
@@ -221,7 +221,7 @@ def generate_sentence(item):
                 "content": "(1622075780091, 'それまでに\x1fそれまでに宿題を終わらせます。\x1fI’ll finish my homework by that time.\x1f48\x1f\nそれまでに&nbsp;by that time', 98, 2, 7)"
             },
             {
-                "role": "system",
+                "role": "assistant",
                 "content": "それまでに<ruby>宿題<rt>しゅくだい</rt></ruby>を<ruby>終<rt>お</rt></ruby>わらせます。"
             },
             {
